@@ -1,0 +1,37 @@
+name: Deploy Phuong Hoa website bundle
+
+on:
+  push:
+    paths:
+      - site-bundle.tar.gz.b64
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Unpack website
+        shell: bash
+        run: |
+          rm -rf hoatuoiphuonghoa
+          rm -f index.html privacy.html data-deletion.html terms.html styles.css
+          base64 -d site-bundle.tar.gz.b64 > /tmp/site.tar.gz
+          tar -xzf /tmp/site.tar.gz -C .
+      - name: Commit deployed website
+        shell: bash
+        run: |
+          git config user.name "PH Media Website Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Deploy Hoa Tuoi Phuong Hoa website"
+            git push
+          fi
